@@ -128,6 +128,10 @@ function gameSetup() {
 // Runs at the start of game over, sets up the game over screen
 /*******************************************************/
 function gameOverSetup(_isAlive) {
+    console.log("GAME OVER")
+
+    fb_writeHighScore(timerScore);
+
     //Resets Canvas + Button animations
     allSprites.remove();
     buttonAnimation = "small";

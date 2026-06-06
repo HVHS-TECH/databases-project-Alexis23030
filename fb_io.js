@@ -14,13 +14,17 @@ async function fb_authenticate() {
     if (user) {
       user = firebase.auth().currentUser;
       if (user !== null) {
+
         userGameName = (await firebase.database().ref('/userInfo/' + user.uid + '/gameName').once('value')).val()
+        sessionStorage.setItem('userGameName', userGameName);
         if (userGameName == null) {
           userGameName = prompt("Please enter your game name:");
           sessionStorage.setItem('userGameName', userGameName);
           //Validation Needed
         }
+
         userAge = (await firebase.database().ref('/userInfo/' + user.uid + '/age').once('value')).val()
+        sessionStorage.setItem('userAge', userAge);
         if (userAge == null) {
           userAge = prompt("Please enter your age:");
           sessionStorage.setItem('userAge', userAge);

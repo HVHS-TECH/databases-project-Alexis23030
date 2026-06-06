@@ -14,25 +14,6 @@ async function fb_authenticate() {
     if (user) {
       user = firebase.auth().currentUser;
       if (user !== null) {
-
-        userGameName = (await firebase.database().ref('/userInfo/' + user.uid + '/gameName').once('value')).val()
-        sessionStorage.setItem('userGameName', userGameName);
-        console.log(userGameName)
-        console.log(sessionStorage.getItem('userGameName'))
-        if (userGameName == null) {
-          userGameName = prompt("Please enter your game name:");
-          sessionStorage.setItem('userGameName', userGameName);
-          //Validation Needed
-        }
-
-        userAge = (await firebase.database().ref('/userInfo/' + user.uid + '/age').once('value')).val()
-        sessionStorage.setItem('userAge', userAge);
-        if (userAge == null) {
-          userAge = prompt("Please enter your age:");
-          sessionStorage.setItem('userAge', userAge);
-          //Validation Needed
-        }
-
         console.log("User Logged In")
 
         uid = user.uid;
@@ -50,7 +31,23 @@ async function fb_authenticate() {
         sessionStorage.setItem('UserPhotoURL', userPhotoURL);
         firebase.database().ref('/userInfo/' + uid + '/photoURL').set(userPhotoURL);
 
+        userGameName = (await firebase.database().ref('/userInfo/' + user.uid + '/gameName').once('value')).val()
+        sessionStorage.setItem('userGameName', userGameName);
+
+        if (userGameName == null) {
+          userGameName = prompt("Please enter your game name:");
+          sessionStorage.setItem('userGameName', userGameName);
+          //Validation Needed
+        }
         firebase.database().ref('/userInfo/' + uid + '/gameName').set(userGameName);
+
+        userAge = (await firebase.database().ref('/userInfo/' + user.uid + '/age').once('value')).val()
+        sessionStorage.setItem('userAge', userAge);
+        if (userAge == null) {
+          userAge = prompt("Please enter your age:");
+          sessionStorage.setItem('userAge', userAge);
+          //Validation Needed
+        }
         firebase.database().ref('/userInfo/' + uid + '/age').set(userAge);
       }
     } else {
@@ -65,12 +62,25 @@ async function fb_authenticate() {
   });
 }
 
-
-
 /*******************************************************/
 // fb_writeHighScore(score)
 /*******************************************************/
-function fb_writeHighScore(_score, _game) {
+async function fb_writeHighScore(_score, _game) {
   console.log("fb_writeHighScore")
-  firebase.database().ref('/' + _game + '/' + sessionStorage.getItem('uid') + '/' + sessionStorage.getItem('userGameName')).set(_score);
+
+  let currentDBScore = (await firebase.database().ref('/' + _game + '/' + sessionStorage.getItem('uid') + '/' + sessionStorage.getItem('userGameName')).once('value')).val()
+  console.log("Current: " + currentDBScore)
+  console.log("New: " + _score)
+  if (_game == "JetFighter") {
+    if (currentDBScore > _score && _score != 0) {
+      console.log("You got a new High Score!")
+      firebase.database().ref('/' + _game + '/' + sessionStorage.getItem('uid') + '/' + sessionStorage.getItem('userGameName')).set(_score);
+    }
+  } else if (_game == "GeoDash") {
+    if (currentDBScore < _score) {
+      console.log("You got a new High Score!")
+      firebase.database().ref('/' + _game + '/' + sessionStorage.getItem('uid') + '/' + sessionStorage.getItem('userGameName')).set(_score);
+    }
+  }
+
 }

@@ -41,7 +41,7 @@ function preload() {
 /*******************************************************/
 function setup() {
     let cnv = createCanvas(CNV_WIDTH, CNV_HEIGHT + 50);
-    cnv.position((windowWidth / 2) - (CNV_WIDTH / 2), (windowHeight / 2) - (CNV_HEIGHT / 2)); //Centers canvas in screen
+    cnv.position(0, (windowHeight / 2) - ((CNV_HEIGHT+70)/2));
     frameRate(60);
 
     //Start Screen Text 1

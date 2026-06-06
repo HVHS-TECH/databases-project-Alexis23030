@@ -17,6 +17,8 @@ async function fb_authenticate() {
 
         userGameName = (await firebase.database().ref('/userInfo/' + user.uid + '/gameName').once('value')).val()
         sessionStorage.setItem('userGameName', userGameName);
+        console.log(userGameName)
+        console.log(sessionStorage.getItem('userGameName'))
         if (userGameName == null) {
           userGameName = prompt("Please enter your game name:");
           sessionStorage.setItem('userGameName', userGameName);

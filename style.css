@@ -1,0 +1,32 @@
+* {
+    background-color: #060A13;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 18px;
+
+}
+
+.button {
+    background-color: #FF4D5A;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    width:100px;
+    padding: 15px;
+    margin:15px;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 400;
+    font-size: 18px;
+}
+#loginButton{
+      width:200px;  
+}
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

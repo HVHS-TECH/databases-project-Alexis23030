@@ -130,7 +130,7 @@ function gameSetup() {
 function gameOverSetup(_isAlive) {
     console.log("GAME OVER")
 
-    fb_writeHighScore(timerScore);
+    fb_writeHighScore(timerScore, "JetFighter");
 
     //Resets Canvas + Button animations
     allSprites.remove();

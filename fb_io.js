@@ -4,6 +4,20 @@ let userPhotoURL;
 let uid;
 let userGameName;
 let userAge;
+let isLoggedIn;
+
+fb_isLoggedIn();
+
+function fb_isLoggedIn() {
+  if (!isLoggedIn && (sessionStorage.getItem('userAge') ==null || sessionStorage.getItem('uid') == null || sessionStorage.getItem('userEmail') == null || sessionStorage.getItem('userDisplayName') == null || sessionStorage.getItem('userPhotoURL') == null || sessionStorage.getItem('userGameName') == null)) {
+    const popUp = document.getElementById("loginPopUp");
+    if (popUp) {
+      popUp.style.display = "block"
+    }
+  }
+}
+
+
 
 /*******************************************************/
 // fb_authenticate()
@@ -14,8 +28,6 @@ async function fb_authenticate() {
     if (user) {
       user = firebase.auth().currentUser;
       if (user !== null) {
-        console.log("User Logged In")
-
         uid = user.uid;
         sessionStorage.setItem('uid', uid);
 
@@ -28,7 +40,7 @@ async function fb_authenticate() {
         firebase.database().ref('/userInfo/' + uid + '/email').set(userEmail);
 
         userPhotoURL = user.photoURL;
-        sessionStorage.setItem('UserPhotoURL', userPhotoURL);
+        sessionStorage.setItem('userPhotoURL', userPhotoURL);
         firebase.database().ref('/userInfo/' + uid + '/photoURL').set(userPhotoURL);
 
         userGameName = (await firebase.database().ref('/userInfo/' + user.uid + '/gameName').once('value')).val()
@@ -49,9 +61,18 @@ async function fb_authenticate() {
           //Validation Needed
         }
         firebase.database().ref('/userInfo/' + uid + '/age').set(userAge);
+
+        console.log("User Logged In")
+        isLoggedIn = true;
+        const popUp = document.getElementById("loginPopUp");
+        if (popUp) {
+          popUp.style.display = "none"
+        }
       }
     } else {
       console.log("User Not Logged In")
+
+
       let provider = new firebase.auth.GoogleAuthProvider();
       provider.addScope('profile');
       provider.addScope('email');
@@ -60,6 +81,8 @@ async function fb_authenticate() {
       });
     }
   });
+
+
 }
 
 /*******************************************************/
@@ -84,3 +107,4 @@ async function fb_writeHighScore(_score, _game) {
   }
 
 }
+

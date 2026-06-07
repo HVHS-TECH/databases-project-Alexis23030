@@ -2,19 +2,19 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Alexis' Game Website</title>
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="style.css">
-    <!-- firebase start ****************************************-->
-    <!-- Firebase App (core Firebase SDK) is always required & must be listed 1st -->
-    <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-app.js"></script>
-    <!-- Add Firebase products that you want to use -->
-    <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-analytics.js"></script>
-    <!-- firebase end ******************************************-->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alexis' Game Website</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="style.css">
+  <!-- firebase start ****************************************-->
+  <!-- Firebase App (core Firebase SDK) is always required & must be listed 1st -->
+  <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-app.js"></script>
+  <!-- Add Firebase products that you want to use -->
+  <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-analytics.js"></script>
+  <!-- firebase end ******************************************-->
   <script src="fb_setup.js"></script>
 
 </head>
@@ -23,9 +23,18 @@
   <div class="buttonContainer">
     <a href="GeoDash/GeoDash.html" class="button">GeoDash</a>
     <a href="JetFighter/JetFighter.html" class="button">JetFighter</a>
-    <button onclick="fb_authenticate()" id="loginButton" class="button">Login with Google</button>
+  </div>
+
+  <!-- The Modal From: https://www.w3schools.com/howto/howto_css_modals.asp -->
+  <div id="loginPopUp" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+      <p class="modal-text">You need to login to use this website</p>
+      <button onclick="fb_authenticate()" id="loginButton" class="button">Login with Google</button>
     </div>
-    <script src="fb_io.js"></script>
+  </div>
+
+  <script src="fb_io.js"></script>
 </body>
 
 </html>

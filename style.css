@@ -73,5 +73,15 @@
 }
 /* Modal Content/Text */
 .modal-text {
-  background-color: #fefefe;
+    background-color: #fefefe;
+}
+
+#nameValidationAlert {
+    background-color: #ffffff;
+    color: #ff0000;
+}
+
+#ageValidationAlert {
+    background-color: #ffffff;
+    color: #ff0000;
 }

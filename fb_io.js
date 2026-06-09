@@ -131,7 +131,12 @@ async function fb_popUpChecker() {
   if (userGameName == null) {
     console.log("run")
     userGameName = (await firebase.database().ref('/userInfo/' + uid + '/gameName').once('value')).val()
+    
+    
+    
     sessionStorage.setItem('userGameName', userGameName);
+
+
     popUp = document.getElementById("namePopUp");
     console.log(userGameName)
     if (popUp && userGameName == null) {

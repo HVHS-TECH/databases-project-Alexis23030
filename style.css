@@ -16,7 +16,9 @@
     height: 40px;
     padding: 5px;
     margin: 15px;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-decoration: none;
     cursor: pointer;
     font-family: "Plus Jakarta Sans", sans-serif;
@@ -30,8 +32,8 @@
 
 .buttonContainer {
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
 }
 
 .highScoreTable {
@@ -140,11 +142,6 @@ input {
     display: block;
 }
 
-.topBar {
-    background-color: #007386;
-    width: 100%;
-    height: 100px;
-}
 b {
     font-weight: bold;
     background-color: #0059b3;

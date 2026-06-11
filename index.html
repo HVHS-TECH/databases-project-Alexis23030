@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Alexis' Game Website</title>
+  <title>Alexis' Games</title>
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="style.css">
   <!-- firebase start ****************************************-->
@@ -16,43 +16,51 @@
   <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-analytics.js"></script>
   <!-- firebase end ******************************************-->
   <script src="fb_setup.js"></script>
-
 </head>
 
 <body>
+  <div id="topBar">
+    <div id="profilePic"></div>
+  </div>
+
+
+
   <div class="buttonContainer">
     <a href="GeoDash/GeoDash.html" class="button">GeoDash</a>
     <a href="JetFighter/JetFighter.html" class="button">JetFighter</a>
   </div>
 
-  <!-- The Modal From: https://www.w3schools.com/howto/howto_css_modals.asp -->
+
+
+
+
+  <!-- The Popup From: https://www.w3schools.com/howto/howto_css_modals.asp -->
   <div id="loginPopUp" class="modal">
     <div class="modal-content">
       <p class="modal-text">You need to login to use this application</p>
-      <button onclick="fb_authenticate()" id="loginButton" class="button" type = "button">Login with Google</button>
+      <button onclick="fb_authenticate()" id="loginButton" class="button" type="button">Login with Google</button>
     </div>
   </div>
 
   <div id="namePopUp" class="modal">
     <div class="modal-content">
-        <label class="modal-text" for="nameInput">Game Name:</label>
-        <br>
-        <input class="modal-text" type="text" id="nameInput" name="nameInput" required />
-        <p id="nameValidationAlert"></p>
-      <button onclick="fb_writeForm('name')" id="loginButton" class="button" type = "button">Submit</button>
+      <label class="modal-text" for="nameInput">Game Name:</label>
+      <br>
+      <input class="modal-text" type="text" id="nameInput" name="nameInput" required />
+      <p id="nameValidationAlert"></p>
+      <button onclick="fb_writeForm('gameName')" id="loginButton" class="button" type="button">Submit</button>
     </div>
   </div>
 
   <div id="agePopUp" class="modal">
     <div class="modal-content">
-        <label class="modal-text" for="ageInput">Age:</label>
-        <input class="modal-text" type="number" id="ageInput" name="ageInput" required />
-        <br>
-        <p id="ageValidationAlert"></p>
-      <button onclick="fb_writeForm('age')" id="loginButton" class="button" type = "button">Submit</button>
+      <label class="modal-text" for="ageInput">Age:</label>
+      <br>
+      <input class="modal-text" type="number" id="ageInput" name="ageInput" required />
+      <p id="ageValidationAlert"></p>
+      <button onclick="fb_writeForm('age')" id="loginButton" class="button" type="button">Submit</button>
     </div>
   </div>
-
   <script src="fb_io.js"></script>
 </body>
 

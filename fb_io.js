@@ -4,8 +4,8 @@ let userPhotoURL;
 let uid;
 let userGameName;
 let userAge;
-let isLoggedIn;
 let popUp;
+
 fb_isLoggedIn();
 
 /*******************************************************/
@@ -17,6 +17,14 @@ function fb_isLoggedIn() {
     popUp = document.getElementById("loginPopUp");
     if (popUp) {
       popUp.style.display = "block"
+    }
+  } else {
+    profile = document.getElementById("profilePic");
+    if (profile) {
+      profile.innerHTML = `<img src="${sessionStorage.getItem('userPhotoURL')}" alt="User profile picture" 
+      width="50px" height="50px" style="border-radius: 50%"> <div class="profileInfo"><b>Name: </b><br>
+      ${sessionStorage.getItem('userDisplayName')} ~ ${sessionStorage.getItem('userGameName')}<br><b>Email: 
+      <br></b>${sessionStorage.getItem('userEmail')}<br><b>Age: </b><br>${sessionStorage.getItem('userAge')}</div>`
     }
   }
 }
@@ -44,15 +52,18 @@ async function fb_authenticate() {
         userPhotoURL = user.photoURL;
         sessionStorage.setItem('userPhotoURL', userPhotoURL);
         firebase.database().ref('/userInfo/' + uid + '/photoURL').set(userPhotoURL);
+        //User Profile Photo URL (from Google)
+        userPhotoURL = user.photoURL;
+        sessionStorage.setItem('userPhotoURL', userPhotoURL);
+        firebase.database().ref('/userInfo/' + uid + '/photoURL').set(userPhotoURL);
 
         popUp = document.getElementById("loginPopUp");
         if (popUp) {
           popUp.style.display = "none"
           fb_popUpChecker();
+          fb_isLoggedIn();
         }
         console.log("User Logged In")
-        isLoggedIn = true;
-
       }
     } else {
       console.log("User Not Logged In")
@@ -78,7 +89,7 @@ async function fb_writeHighScore(_score, _game) {
   console.log("Current: " + currentDBScore)
   console.log("New: " + _score)
   if (_game == "JetFighter") {
-    if (currentDBScore > _score && _score != 0) {
+    if (currentDBScore => _score && _score != 0) {
       console.log("You got a new High Score!")
       firebase.database().ref('/' + _game + '/' + sessionStorage.getItem('uid') + '/' + sessionStorage.getItem('userGameName')).set(_score);
     }
@@ -91,15 +102,15 @@ async function fb_writeHighScore(_score, _game) {
 }
 
 
-//Asking when already there
-
+/*******************************************************/
+// fb_writeForm(_type)
+/*******************************************************/
 function fb_writeForm(_type) {
   if (_type == "age") {
     popUp = document.getElementById("agePopUp");
     if (popUp) {
       userAge = document.getElementById('ageInput').value
       if (userAge == null || !Number.isInteger(Number(userAge)) || userAge < 1 || userAge > 99) {
-        console.log("You must enter an age between 1-99")
         ageValidationAlert.innerHTML = "You must enter an age between 1-99";
       } else {
         sessionStorage.setItem('userAge', userAge);
@@ -108,12 +119,11 @@ function fb_writeForm(_type) {
         fb_popUpChecker();
       }
     }
-  } else if (_type == "name") {
+  } else if (_type == "gameName") {
     popUp = document.getElementById("namePopUp");
     if (popUp) {
       userGameName = document.getElementById('nameInput').value
       if (userGameName == null || userGameName.includes('<') || userGameName.includes('>') || userGameName.includes('$') || userGameName.length > 20) {
-        console.log("You must enter a game name (without <, >, $), and less than 20 characters")
         nameValidationAlert.innerHTML = "You must enter a game name (without <, >, $), and less than 20 characters";
       } else {
         sessionStorage.setItem('userGameName', userGameName);
@@ -121,35 +131,23 @@ function fb_writeForm(_type) {
         popUp.style.display = "none"
         fb_popUpChecker();
       }
-
     }
   }
 }
 
-
+/*******************************************************/
+// fb_popUpChecker()
+/*******************************************************/
 async function fb_popUpChecker() {
+  userGameName = (await firebase.database().ref('/userInfo/' + uid + '/gameName').once('value')).val()
+  sessionStorage.setItem('userGameName', userGameName);
   if (userGameName == null) {
-    console.log("run")
-    userGameName = (await firebase.database().ref('/userInfo/' + uid + '/gameName').once('value')).val()
-    
-    
-    
-    sessionStorage.setItem('userGameName', userGameName);
-
-
-    popUp = document.getElementById("namePopUp");
-    console.log(userGameName)
-    if (popUp && userGameName == null) {
-      popUp.style.display = "block"
-    }
-  }
-
-  if (userAge == null) {
+    document.getElementById("namePopUp").style.display = "block";
+  } else {
     userAge = (await firebase.database().ref('/userInfo/' + uid + '/age').once('value')).val()
     sessionStorage.setItem('userAge', userAge);
-    popUp = document.getElementById("agePopUp");
-    if (popUp && document.getElementById("namePopUp").style.display == "none" && userAge == null) {
-      popUp.style.display = "block"
+    if (userAge == null) {
+      document.getElementById("agePopUp").style.display = "block"
     }
   }
 }

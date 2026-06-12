@@ -7,6 +7,11 @@ let userAge;
 let popUp;
 
 fb_isLoggedIn();
+if (window.location.pathname.endsWith("/JetFighter.html")) {
+  fb_readHighScores("JetFighter");
+} else if (window.location.pathname.endsWith("/GeoDash.html")) {
+  fb_readHighScores("GeoDash");
+}
 
 /*******************************************************/
 // fb_isLoggedIn()
@@ -78,27 +83,32 @@ async function fb_authenticate() {
 }
 
 /*******************************************************/
-// fb_writeHighScore(score)
+// fb_writeHighScore(_score, _game)
 /*******************************************************/
 async function fb_writeHighScore(_score, _game) {
   console.log("fb_writeHighScore")
   let currentDBScore = (await firebase.database().ref('/' + _game + '/' + sessionStorage.getItem('uid') + '/' + sessionStorage.getItem('userGameName')).once('value')).val()
-  if (currentDBScore == null) {
-    currentDBScore = 0;
-  }
+
   console.log("Current: " + currentDBScore)
   console.log("New: " + _score)
   if (_game == "JetFighter") {
-    if (currentDBScore => _score && _score != 0) {
+    if (currentDBScore == null) {
+      currentDBScore = Number.MAX_VALUE;
+    }
+    if (currentDBScore >= _score && _score !== 0) {
       console.log("You got a new High Score!")
       firebase.database().ref('/' + _game + '/' + sessionStorage.getItem('uid') + '/' + sessionStorage.getItem('userGameName')).set(_score);
     }
   } else if (_game == "GeoDash") {
+    if (currentDBScore == null) {
+      currentDBScore = 0;
+    }
     if (currentDBScore < _score) {
       console.log("You got a new High Score!")
       firebase.database().ref('/' + _game + '/' + sessionStorage.getItem('uid') + '/' + sessionStorage.getItem('userGameName')).set(_score);
     }
   }
+  fb_readHighScores(_game);
 }
 
 
@@ -151,3 +161,37 @@ async function fb_popUpChecker() {
     }
   }
 }
+
+
+/*******************************************************/
+// fb_readHighScores(_game)
+/*******************************************************/
+async function fb_readHighScores(_game) {
+  console.log("fb_readHighScores()")
+  let highScoreTable = (await firebase.database().ref('/' + _game).once('value')).val()
+  let highScoreInfo = Object.values(highScoreTable);
+  if (_game === "GeoDash") {
+    highScoreInfo.sort((a, b) => {
+      let keyA = Object.keys(a)[0];
+      let keyB = Object.keys(b)[0];
+      return b[keyB] - a[keyA];
+    });
+  } else if (_game === "JetFighter") {
+    highScoreInfo.sort((a, b) => {
+      let keyA = Object.keys(a)[0];
+      let keyB = Object.keys(b)[0];
+      return a[keyA] - b[keyB];
+    });
+  }
+  let highScoreTableDisplay = document.getElementById("highScoreTableJetFighter");
+  if (highScoreTableDisplay) {
+    highScoreTableDisplay.innerHTML = ``
+
+
+    for (i = 0; i < highScoreInfo.length; i++) {
+      console.log(Object.keys(highScoreInfo[i])[0] + ": " + Object.values(highScoreInfo[i])[0])
+      highScoreTableDisplay.innerHTML += `<div class="score-row"><span>${i + 1}. </span> <span>${Object.keys(highScoreInfo[i])[0]}: </span> <span>${Object.values(highScoreInfo[i])[0]}</span></div>`
+    }
+  }
+}
+

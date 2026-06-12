@@ -114,10 +114,6 @@ input {
     padding-left: 5px;
 }
 
-
-
-
-
 #profilePic {
     position: absolute;
     right: 20px;
@@ -145,5 +141,19 @@ input {
 b {
     font-weight: bold;
     background-color: #0059b3;
+}
 
+
+
+#highScoreTableDisplay {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.score-row {
+  display: flex;
+  justify-content: left;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid #ccc; 
 }

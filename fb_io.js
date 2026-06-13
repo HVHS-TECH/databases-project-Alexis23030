@@ -1,3 +1,7 @@
+/*******************************************************/
+// fb_io.js
+// Contains all needed firebase functions
+/*******************************************************/
 let userDisplayName;
 let userEmail;
 let userPhotoURL;
@@ -6,6 +10,7 @@ let userGameName;
 let userAge;
 let popUp;
 
+// Check if user is logged in, and display high scores if on the right pages
 fb_isLoggedIn();
 if (window.location.pathname.endsWith("/JetFighter.html")) {
   fb_readHighScores("JetFighter");
@@ -15,15 +20,21 @@ if (window.location.pathname.endsWith("/JetFighter.html")) {
 
 /*******************************************************/
 // fb_isLoggedIn()
+// Checks if user info is stored in sessionStorage
+// Run at the start of this file, and when user is logged in, in fb_authenticate
 /*******************************************************/
 function fb_isLoggedIn() {
-  if (sessionStorage.getItem('userAge') == null || sessionStorage.getItem('uid') == null || sessionStorage.getItem('userEmail') == null || sessionStorage.getItem('userDisplayName') == null || sessionStorage.getItem('userPhotoURL') == null || sessionStorage.getItem('userGameName') == null
-    || sessionStorage.getItem('userAge') == 'null' || sessionStorage.getItem('uid') == 'null' || sessionStorage.getItem('userEmail') == 'null' || sessionStorage.getItem('userDisplayName') == 'null' || sessionStorage.getItem('userPhotoURL') == 'null' || sessionStorage.getItem('userGameName') == 'null') {
+  if (sessionStorage.getItem('userAge') == null || sessionStorage.getItem('uid') == null || sessionStorage.getItem('userEmail') == null ||
+    sessionStorage.getItem('userDisplayName') == null || sessionStorage.getItem('userPhotoURL') == null || sessionStorage.getItem('userGameName') == null ||
+    sessionStorage.getItem('userAge') == 'null' || sessionStorage.getItem('uid') == 'null' || sessionStorage.getItem('userEmail') == 'null' ||
+    sessionStorage.getItem('userDisplayName') == 'null' || sessionStorage.getItem('userPhotoURL') == 'null' || sessionStorage.getItem('userGameName') == 'null') {
+    //If user info is not found, then open the loginPopup
     popUp = document.getElementById("loginPopUp");
     if (popUp) {
       popUp.style.display = "block"
     }
   } else {
+    //If user info is found, then display the profile pic, and profile info dropdown
     profile = document.getElementById("profilePic");
     if (profile) {
       profile.innerHTML = `<img src="${sessionStorage.getItem('userPhotoURL')}" alt="User profile picture" 
@@ -36,10 +47,15 @@ function fb_isLoggedIn() {
 
 /*******************************************************/
 // fb_authenticate()
+// Signs in user with Google
+// If already logged in, save info to sessionStorage and write to the DB
+// Then runs fb_popUpChecker() to gain non-google info and fb_isLoggedIn()
+// Run when loginPopup button is pressed
 /*******************************************************/
 async function fb_authenticate() {
   firebase.auth().onAuthStateChanged(async (user) => {
     if (user) {
+      //Already logged in
       user = firebase.auth().currentUser;
       if (user !== null) {
         //UID (from Google)
@@ -62,15 +78,13 @@ async function fb_authenticate() {
         sessionStorage.setItem('userPhotoURL', userPhotoURL);
         firebase.database().ref('/userInfo/' + uid + '/photoURL').set(userPhotoURL);
 
-        popUp = document.getElementById("loginPopUp");
-        if (popUp) {
-          popUp.style.display = "none"
-          fb_popUpChecker();
-          fb_isLoggedIn();
-        }
+        document.getElementById("loginPopUp").style.display = "none" // Hides loginPopUp
+        fb_popUpChecker(); // Gets non-google info
+        fb_isLoggedIn();   // Runs to check everything is entered, and display profile pic
         console.log("User Logged In")
       }
     } else {
+      //Not logged in, runs Google pop up
       console.log("User Not Logged In")
       let provider = new firebase.auth.GoogleAuthProvider();
       provider.addScope('profile');
@@ -84,62 +98,71 @@ async function fb_authenticate() {
 
 /*******************************************************/
 // fb_writeHighScore(_score, _game)
+// Writes high score from game to DB
+// Runs fb_readHighScores(_game) to display high scores
+// Called from game js files when game ends
 /*******************************************************/
 async function fb_writeHighScore(_score, _game) {
   console.log("fb_writeHighScore")
+  //Gets score from DB
   let currentDBScore = (await firebase.database().ref('/' + _game + '/' + sessionStorage.getItem('uid') + '/' + sessionStorage.getItem('userGameName')).once('value')).val()
 
-  console.log("Current: " + currentDBScore)
-  console.log("New: " + _score)
   if (_game == "JetFighter") {
+    //If high score is for JetFighter game
     if (currentDBScore == null) {
+      //If there is no score in DB set it to max value
       currentDBScore = Number.MAX_VALUE;
     }
     if (currentDBScore >= _score && _score !== 0) {
-      console.log("You got a new High Score!")
+      //If new score is smaller than old one and not 0, set new high score, write to DB
       firebase.database().ref('/' + _game + '/' + sessionStorage.getItem('uid') + '/' + sessionStorage.getItem('userGameName')).set(_score);
     }
   } else if (_game == "GeoDash") {
+    //If high score is for GeoDash game
     if (currentDBScore == null) {
+      //If there is no score in DB set it to 0
       currentDBScore = 0;
     }
     if (currentDBScore < _score) {
-      console.log("You got a new High Score!")
+      //If new score is bigger than old one, set new high score, write to DB
       firebase.database().ref('/' + _game + '/' + sessionStorage.getItem('uid') + '/' + sessionStorage.getItem('userGameName')).set(_score);
     }
   }
+  // Display high scores
   fb_readHighScores(_game);
 }
 
 
 /*******************************************************/
 // fb_writeForm(_type)
+// Writes form data to DB and Session Storage, with validation
+// Called when submit button pressed for age and gameName popups
 /*******************************************************/
 function fb_writeForm(_type) {
   if (_type == "age") {
-    popUp = document.getElementById("agePopUp");
+    popUp = document.getElementById("agePopUp"); //Get popUp
     if (popUp) {
-      userAge = document.getElementById('ageInput').value
+      userAge = document.getElementById('ageInput').value //Get user age from form
       if (userAge == null || !Number.isInteger(Number(userAge)) || userAge < 1 || userAge > 99) {
         ageValidationAlert.innerHTML = "You must enter an age between 1-99";
       } else {
-        sessionStorage.setItem('userAge', userAge);
-        firebase.database().ref('/userInfo/' + uid + '/' + _type).set(userAge);
-        popUp.style.display = "none"
-        fb_popUpChecker();
+        sessionStorage.setItem('userAge', userAge); //Write to sessionStorage
+        firebase.database().ref('/userInfo/' + uid + '/' + _type).set(userAge); //Write to DB
+        popUp.style.display = "none" //Hide popUp
+        fb_popUpChecker(); //Runs to check if there are any other values still needing to be entered
       }
     }
   } else if (_type == "gameName") {
-    popUp = document.getElementById("namePopUp");
+    popUp = document.getElementById("namePopUp"); //Get popUp
     if (popUp) {
-      userGameName = document.getElementById('nameInput').value
+      userGameName = document.getElementById('nameInput').value //get user name from form
       if (userGameName == null || userGameName.includes('<') || userGameName.includes('>') || userGameName.includes('$') || userGameName.length > 20) {
         nameValidationAlert.innerHTML = "You must enter a game name (without <, >, $), and less than 20 characters";
       } else {
-        sessionStorage.setItem('userGameName', userGameName);
-        firebase.database().ref('/userInfo/' + uid + '/' + _type).set(userGameName);
-        popUp.style.display = "none"
-        fb_popUpChecker();
+        sessionStorage.setItem('userGameName', userGameName); //Write to sessionStorage
+        firebase.database().ref('/userInfo/' + uid + '/' + _type).set(userGameName); //Write to DB
+        popUp.style.display = "none" //Hide popUp
+        fb_popUpChecker(); //Runs to check if there are any other values still needing to be entered
       }
     }
   }
@@ -147,51 +170,62 @@ function fb_writeForm(_type) {
 
 /*******************************************************/
 // fb_popUpChecker()
+// Checks for non google info
+// First checks is they already exist, then opens popUp if not
+// Called in fb_writeForm() and fb_authenticate()
 /*******************************************************/
 async function fb_popUpChecker() {
+  //Checks if game name is already in DB, and writes to sessionStorage
   userGameName = (await firebase.database().ref('/userInfo/' + uid + '/gameName').once('value')).val()
   sessionStorage.setItem('userGameName', userGameName);
+  //Checks if user age is already in DB, and write to sessionStorage
+  userAge = (await firebase.database().ref('/userInfo/' + uid + '/age').once('value')).val()
+  sessionStorage.setItem('userAge', userAge);
   if (userGameName == null) {
+    //If userGameName doesn't exist. then open name popUp
     document.getElementById("namePopUp").style.display = "block";
-  } else {
-    userAge = (await firebase.database().ref('/userInfo/' + uid + '/age').once('value')).val()
-    sessionStorage.setItem('userAge', userAge);
-    if (userAge == null) {
-      document.getElementById("agePopUp").style.display = "block"
-    }
+  } else if (userAge == null) {
+    //If userAge doesn't exist. then open age popUp
+    document.getElementById("agePopUp").style.display = "block"
   }
 }
 
 
+
 /*******************************************************/
 // fb_readHighScores(_game)
+// Reads highscores from DB and displays them
+// Called at the start of this file when on the game pages
+// And called when a high score is entered to the DB
 /*******************************************************/
 async function fb_readHighScores(_game) {
-  console.log("fb_readHighScores()")
+  //Get high score from DB as an object
   let highScoreTable = (await firebase.database().ref('/' + _game).once('value')).val()
-  let highScoreInfo = Object.values(highScoreTable);
+  //Transform object to an array
+  let highScoreArray = Object.values(highScoreTable);
+
   if (_game === "GeoDash") {
-    highScoreInfo.sort((a, b) => {
+    // Sorts biggest to smallest if game is GeoDash
+    highScoreArray.sort((a, b) => {
       let keyA = Object.keys(a)[0];
       let keyB = Object.keys(b)[0];
       return b[keyB] - a[keyA];
     });
   } else if (_game === "JetFighter") {
-    highScoreInfo.sort((a, b) => {
+    // Sorts smallest to biggest if game is JetFighter
+    highScoreArray.sort((a, b) => {
       let keyA = Object.keys(a)[0];
       let keyB = Object.keys(b)[0];
       return a[keyA] - b[keyB];
     });
   }
-  let highScoreTableDisplay = document.getElementById("highScoreTableJetFighter");
+  //Gets HTML display div 
+  let highScoreTableDisplay = document.getElementById("highScoreTable"+_game);
   if (highScoreTableDisplay) {
-    highScoreTableDisplay.innerHTML = ``
-
-
-    for (i = 0; i < highScoreInfo.length; i++) {
-      console.log(Object.keys(highScoreInfo[i])[0] + ": " + Object.values(highScoreInfo[i])[0])
-      highScoreTableDisplay.innerHTML += `<div class="score-row"><span>${i + 1}. </span> <span>${Object.keys(highScoreInfo[i])[0]}: </span> <span>${Object.values(highScoreInfo[i])[0]}</span></div>`
+    highScoreTableDisplay.innerHTML = `` //Clears display
+    for (i = 0; i < highScoreArray.length; i++) {
+      //Writes display with position, name, and score
+      highScoreTableDisplay.innerHTML += `<div class="score-row"><span>${i + 1}. </span> <span>${Object.keys(highScoreArray[i])[0]}: </span> <span>${Object.values(highScoreArray[i])[0]}</span></div>`
     }
   }
 }
-

@@ -8,14 +8,17 @@ let userPhotoURL;
 let uid;
 let userGameName;
 let userAge;
+let userAdmin;
 let popUp;
 
-// Check if user is logged in, and display high scores if on the right pages
+// Check if user is logged in, and display high scores if on the game pages
 fb_isLoggedIn();
 if (window.location.pathname.endsWith("/JetFighter.html")) {
   fb_readHighScores("JetFighter");
 } else if (window.location.pathname.endsWith("/GeoDash.html")) {
   fb_readHighScores("GeoDash");
+} else if (window.location.pathname.endsWith("/admin.html")) {
+  fb_adminReadDB();
 }
 
 /*******************************************************/
@@ -24,11 +27,12 @@ if (window.location.pathname.endsWith("/JetFighter.html")) {
 // Run at the start of this file, and when user is logged in, in fb_authenticate
 /*******************************************************/
 function fb_isLoggedIn() {
-  if (sessionStorage.getItem('userAge') == null || sessionStorage.getItem('uid') == null || sessionStorage.getItem('userEmail') == null ||
-    sessionStorage.getItem('userDisplayName') == null || sessionStorage.getItem('userPhotoURL') == null || sessionStorage.getItem('userGameName') == null ||
-    sessionStorage.getItem('userAge') == 'null' || sessionStorage.getItem('uid') == 'null' || sessionStorage.getItem('userEmail') == 'null' ||
-    sessionStorage.getItem('userDisplayName') == 'null' || sessionStorage.getItem('userPhotoURL') == 'null' || sessionStorage.getItem('userGameName') == 'null') {
-    //If user info is not found, then open the loginPopup
+  if (sessionStorage.getItem('userAge') == null || sessionStorage.getItem('uid') == null || sessionStorage.getItem('userEmail') == null
+    || sessionStorage.getItem('userDisplayName') == null || sessionStorage.getItem('userPhotoURL') == null || sessionStorage.getItem('userGameName') == null
+    || sessionStorage.getItem('userAdmin') == null || sessionStorage.getItem('userAge') == 'null' || sessionStorage.getItem('uid') == 'null'
+    || sessionStorage.getItem('userEmail') == 'null' || sessionStorage.getItem('userDisplayName') == 'null' || sessionStorage.getItem('userPhotoURL') == 'null'
+    || sessionStorage.getItem('userGameName') == 'null' || sessionStorage.getItem('userAdmin') == 'null') {
+    //If any user info is not found, then open the loginPopup
     popUp = document.getElementById("loginPopUp");
     if (popUp) {
       popUp.style.display = "block"
@@ -53,6 +57,7 @@ function fb_isLoggedIn() {
 // Run when loginPopup button is pressed
 /*******************************************************/
 async function fb_authenticate() {
+  let user;
   firebase.auth().onAuthStateChanged(async (user) => {
     if (user) {
       //Already logged in
@@ -73,10 +78,23 @@ async function fb_authenticate() {
         userPhotoURL = user.photoURL;
         sessionStorage.setItem('userPhotoURL', userPhotoURL);
         firebase.database().ref('/userInfo/' + uid + '/photoURL').set(userPhotoURL);
-        //User Profile Photo URL (from Google)
-        userPhotoURL = user.photoURL;
-        sessionStorage.setItem('userPhotoURL', userPhotoURL);
-        firebase.database().ref('/userInfo/' + uid + '/photoURL').set(userPhotoURL);
+
+        //User Admin boolean, default false unless otherwise changed
+        let userAdmin = (await firebase.database().ref('/userInfo/' + uid + '/admin').once('value')).val()
+        if (userAdmin !== true) {
+          userAdmin = false
+        }
+        //Save the admin value to sessionStorage
+        sessionStorage.setItem('userAdmin', userAdmin);
+
+        profile = document.getElementById("profilePic");
+        if (profile && userAdmin == true) {
+          console.log("Admin mode available")
+          document.getElementById("adminButton").style.display = "block"
+        } else {
+          document.getElementById("adminButton").style.display = "none"
+        }
+
 
         document.getElementById("loginPopUp").style.display = "none" // Hides loginPopUp
         fb_popUpChecker(); // Gets non-google info
@@ -220,7 +238,7 @@ async function fb_readHighScores(_game) {
     });
   }
   //Gets HTML display div 
-  let highScoreTableDisplay = document.getElementById("highScoreTable"+_game);
+  let highScoreTableDisplay = document.getElementById("highScoreTable" + _game);
   if (highScoreTableDisplay) {
     highScoreTableDisplay.innerHTML = `` //Clears display
     for (i = 0; i < highScoreArray.length; i++) {
@@ -229,3 +247,47 @@ async function fb_readHighScores(_game) {
     }
   }
 }
+
+
+
+/*******************************************************/
+// fb_adminReadDB()
+// NEEDS COMMENTS
+/*******************************************************/
+async function fb_adminReadDB() {
+  console.log("fb_adminReadDB")
+
+  let userInfo = (await firebase.database().ref('/userInfo').once('value')).val()
+  let GeoDashScore = (await firebase.database().ref('/GeoDash').once('value')).val()
+  let JetFighterScore = (await firebase.database().ref('/JetFighter').once('value')).val()
+  let userInfoArray = Object.values(userInfo);
+  let GeoDashScoreArray = Object.values(GeoDashScore);
+  let JetFighterScoreArray = Object.values(JetFighterScore);
+
+  console.log(userInfoArray)
+  console.log(GeoDashScoreArray)
+  console.log(JetFighterScoreArray)
+  for (i = 0; i < userInfoArray.length; i++) {
+    document.getElementById("userDropdown").innerHTML += "<option value='" + i + "'>" + userInfoArray[i].displayName + " ~ " + userInfoArray[i].gameName + "</option>";
+  }
+
+  document.getElementById('userDropdown').addEventListener('change', (_value) => {
+    let selectedValue = _value.target.value;
+    let adminContent = document.getElementById('adminContent')
+    adminContent.innerHTML = `
+    <b>User Info:</b><br><br>
+    <b>Display Name: </b>${userInfoArray[selectedValue].displayName}<br>
+    <b>Game Name: </b>${userInfoArray[selectedValue].gameName}<br>
+    <b>Email: </b>${userInfoArray[selectedValue].email}<br>
+    <b>Age: </b>${userInfoArray[selectedValue].age}<br>
+    <b>Admin: </b>${userInfoArray[selectedValue].admin}<br>
+    <img src="${userInfoArray[selectedValue].photoURL}" alt="User profile picture" 
+    width="50px" height="50px" style="border-radius: 50%"><br><br>
+    <b>Scores:</b><br><br>
+    <b>GeoDash Score: </b>${(GeoDashScoreArray.find(item => userInfoArray[selectedValue].gameName in item) || {})[userInfoArray[selectedValue].gameName]}<br>
+    <b>JetFighter Score: </b>${(JetFighterScoreArray.find(item => userInfoArray[selectedValue].gameName in item) || {})[userInfoArray[selectedValue].gameName]}`
+  });
+}
+
+
+

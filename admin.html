@@ -19,13 +19,19 @@
 </head>
 
 <body>
-    <div id="topBar">
-        <div id="profilePic"></div>
-        <a href="index.html" id="adminButton" class="button">Home</a>
+    <div id="mainLayout">
+        <div id="leftColumn">
+            <h2>Select a user:</h2>
+            <select id="userDropdown"></select>
+            <div id="adminContent"></div>
+            <button onclick="fb_adminEdit()" id="editButton" class="button" type="button">Edit</button>
+        </div>
+        <div id="topBar">
+            <a href="index.html" id="adminButton" class="button">Home</a>
+            <div id="profilePic"></div>
+        </div>
+
     </div>
-    <h2>Select a user:</h2>
-    <select id="userDropdown"></select>
-    <div id="adminContent"></div>
     <script src="fb_io.js"></script>
 </body>
 

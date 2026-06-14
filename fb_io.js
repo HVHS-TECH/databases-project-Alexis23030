@@ -18,7 +18,7 @@ if (window.location.pathname.endsWith("/JetFighter.html")) {
 } else if (window.location.pathname.endsWith("/GeoDash.html")) {
   fb_readHighScores("GeoDash");
 } else if (window.location.pathname.endsWith("/admin.html")) {
-  fb_adminReadDB();
+  fb_adminRead();
 }
 
 /*******************************************************/
@@ -95,8 +95,8 @@ async function fb_authenticate() {
           document.getElementById("adminButton").style.display = "none"
         }
 
-
         document.getElementById("loginPopUp").style.display = "none" // Hides loginPopUp
+        console.log("gone")
         fb_popUpChecker(); // Gets non-google info
         fb_isLoggedIn();   // Runs to check everything is entered, and display profile pic
         console.log("User Logged In")
@@ -251,11 +251,11 @@ async function fb_readHighScores(_game) {
 
 
 /*******************************************************/
-// fb_adminReadDB()
+// fb_adminRead()
 // NEEDS COMMENTS
 /*******************************************************/
-async function fb_adminReadDB() {
-  console.log("fb_adminReadDB")
+async function fb_adminRead() {
+  console.log("fb_adminRead")
 
   let userInfo = (await firebase.database().ref('/userInfo').once('value')).val()
   let GeoDashScore = (await firebase.database().ref('/GeoDash').once('value')).val()
@@ -272,6 +272,7 @@ async function fb_adminReadDB() {
   }
 
   document.getElementById('userDropdown').addEventListener('change', (_value) => {
+    document.getElementById('editButton').style.display = "block";
     let selectedValue = _value.target.value;
     let adminContent = document.getElementById('adminContent')
     adminContent.innerHTML = `
@@ -290,4 +291,11 @@ async function fb_adminReadDB() {
 }
 
 
+/*******************************************************/
+// fb_adminEdit()
+// NEEDS COMMENTS
+/*******************************************************/
+function fb_adminEdit(){
+  console.log("fb_adminEdit")
+}
 

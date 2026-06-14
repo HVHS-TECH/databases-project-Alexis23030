@@ -8,14 +8,14 @@ body {
 }
 
 h2 {
-    position: absolute;
+
     margin: 15px;
     color: white;
 }
 
 
 select {
-    position: absolute;
+
     top: 40px;
     margin: 15px;
     color: black;
@@ -29,10 +29,16 @@ select {
 }
 
 #adminContent {
-    position: absolute;
+
     margin: 15px;
     top: 100px;
     color: white;
+}
+
+#editButton {
+    position: static;
+    margin: 15px;
+    display: none;
 }
 
 select,
@@ -65,6 +71,8 @@ select option:hover {
 #userDropdown {
     background-color: white;
 }
+
+
 
 .button {
     background-color: #0059b3;
@@ -173,19 +181,10 @@ input {
     padding-left: 5px;
 }
 
-#profilePic {
-    position: absolute;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    margin: 15px;
-}
-
 .profileInfo {
     display: none;
     position: absolute;
-    right: 0px;
+    right: 20px;
     text-align: left;
     background-color: #0059b3;
     color: white;
@@ -199,7 +198,7 @@ input {
 }
 
 #adminButton {
-    position: absolute;
+
     right: 100px;
     width: 80px;
     text-align: center;
@@ -211,7 +210,14 @@ b {
 
 
 
-#highScoreTableDisplay {
+#highScoreTableGeoDash {
+    right: 10px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+#highScoreTableJetFighter {
+    right: 10px;
     width: 100%;
     margin: 0 auto;
 }
@@ -222,4 +228,49 @@ b {
     gap: 10px;
     padding: 5px 0;
     border-bottom: 1px solid #ccc;
+}
+
+
+/* Creates the horizontal split at the very top of the page */
+#mainLayout {
+    display: flex;
+    justify-content: space-between;
+    /* Left column stays left, topBar goes right */
+    align-items: flex-start;
+    /* Both sides start at the exact same top point */
+    width: 100%;
+}
+
+/* Stacks your main content vertically on the left side */
+#leftColumn {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+/* Keeps your profile items side-by-side on the right side */
+#topBar {
+    display: flex;
+    align-items: center;
+    margin: 0px;
+    gap: 15px;
+    /* Adds clean spacing between the Home button and Profile pic */
+}
+
+/* Fix profilePic relative positioning so its hover menu stays attached to it */
+#profilePic {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    position: relative;
+    background-color: #ccc;
+    /* Temporary visual placeholder if needed */
+}
+
+/* Clean up left margins so your text sits flush against the left screen edge */
+h2,
+select,
+#adminContent,
+#editButton {
+    margin-left: 15px;
 }

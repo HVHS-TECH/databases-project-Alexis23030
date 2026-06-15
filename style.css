@@ -35,7 +35,9 @@ select {
     color: white;
 }
 
-#editButton {
+#editButton,
+#saveButton,
+#cancelButton {
     position: static;
     margin: 15px;
     display: none;
@@ -263,8 +265,6 @@ b {
     height: 50px;
     border-radius: 50%;
     position: relative;
-    background-color: #ccc;
-    /* Temporary visual placeholder if needed */
 }
 
 /* Clean up left margins so your text sits flush against the left screen edge */
@@ -273,4 +273,10 @@ select,
 #adminContent,
 #editButton {
     margin-left: 15px;
+}
+
+
+#adminButtonContainer {
+  display: flex;       
+  gap: 12px;           
 }

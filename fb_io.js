@@ -160,7 +160,7 @@ function fb_writeForm(_type) {
   if (_type == "age") {
     popUp = document.getElementById("agePopUp"); //Get popUp
     if (popUp) {
-      userAge = document.getElementById('ageInput').value //Get user age from form
+      userAge = Number(document.getElementById('ageInput').value) //Get user age from form
       if (userAge == null || !Number.isInteger(Number(userAge)) || userAge < 1 || userAge > 99) {
         ageValidationAlert.innerHTML = "You must enter an age between 1-99";
       } else {
@@ -256,6 +256,10 @@ async function fb_readHighScores(_game) {
 /*******************************************************/
 async function fb_adminRead() {
   console.log("fb_adminRead")
+  document.getElementById('saveButton').style.display = "none";
+  document.getElementById('cancelButton').style.display = "none";
+  document.getElementById('editButton').style.display = "block";
+  document.getElementById('userDropdown').disabled = false;
 
   let userInfo = (await firebase.database().ref('/userInfo').once('value')).val()
   let GeoDashScore = (await firebase.database().ref('/GeoDash').once('value')).val()
@@ -267,6 +271,7 @@ async function fb_adminRead() {
   console.log(userInfoArray)
   console.log(GeoDashScoreArray)
   console.log(JetFighterScoreArray)
+  document.getElementById("userDropdown").innerHTML = ``
   for (i = 0; i < userInfoArray.length; i++) {
     document.getElementById("userDropdown").innerHTML += "<option value='" + i + "'>" + userInfoArray[i].displayName + " ~ " + userInfoArray[i].gameName + "</option>";
   }
@@ -288,6 +293,7 @@ async function fb_adminRead() {
     <b>GeoDash Score: </b>${(GeoDashScoreArray.find(item => userInfoArray[selectedValue].gameName in item) || {})[userInfoArray[selectedValue].gameName]}<br>
     <b>JetFighter Score: </b>${(JetFighterScoreArray.find(item => userInfoArray[selectedValue].gameName in item) || {})[userInfoArray[selectedValue].gameName]}`
   });
+  document.getElementById('userDropdown').dispatchEvent(new Event('change'));
 }
 
 
@@ -295,7 +301,88 @@ async function fb_adminRead() {
 // fb_adminEdit()
 // NEEDS COMMENTS
 /*******************************************************/
-function fb_adminEdit(){
-  console.log("fb_adminEdit")
+async function fb_adminEdit() {
+  console.log("fb_adminEdit()")
+  document.getElementById('saveButton').style.display = "block";
+  document.getElementById('cancelButton').style.display = "block";
+  document.getElementById('editButton').style.display = "none";
+
+
+  let userInfo = (await firebase.database().ref('/userInfo').once('value')).val()
+  let userInfoArray = Object.values(userInfo);
+  let selectedValue = document.getElementById('userDropdown').value;
+  document.getElementById('userDropdown').disabled = true
+  let adminContent = document.getElementById('adminContent')
+  adminContent.innerHTML = `
+    <b>User Info:</b><br><br>
+    <b>Display Name: </b>${userInfoArray[selectedValue].displayName}<br>
+    <b>Game Name: </b>      
+    <input class="adminInput" type="text" id="adminNameInput" name="adminNameInput"><br>
+    <b>Email: </b>${userInfoArray[selectedValue].email}<br>
+    <b>Age: </b>    
+    <input class="adminInput" type="number" id="adminAgeInput" name="adminAgeInput"><br>
+    <b>Admin: </b>    
+    <input class="adminInput" type="checkbox" value="true" id="adminValueInput" name="adminValueInput"><br>
+    <img src="${userInfoArray[selectedValue].photoURL}" alt="User profile picture" 
+    width="50px" height="50px" style="border-radius: 50%"><br><br>
+    <b>Scores:</b><br><br>
+    <b>GeoDash Score: </b>    
+    <input class="adminInput" type="number" id="adminGeoDashInput" name="adminGeoDashInput"><br>
+    <b>JetFighter Score: </b>    
+    <input class="adminInput" type="number" id="adminJetFighterInput" name="adminJetFighterInput">`
+
 }
 
+
+/*******************************************************/
+// fb_adminWrite()
+// NEEDS COMMENTS
+// Needs Validation
+/*******************************************************/
+async function fb_adminWrite() {
+  console.log("fb_adminWrite()");
+
+  let userInfo = (await firebase.database().ref('/userInfo').once('value')).val()
+  let userInfoArray = Object.values(userInfo);
+  let userIDArray = Object.keys(userInfo)
+  let selectedValue = document.getElementById('userDropdown').value;
+
+  console.log(userIDArray[selectedValue])
+
+
+  let adminNewName = document.getElementById("adminNameInput").value
+  let adminNewAge = Number(document.getElementById("adminAgeInput").value)
+  let adminNewGeoDash = Number(document.getElementById("adminGeoDashInput").value)
+  let adminNewJetFighter = Number(document.getElementById("adminJetFighterInput").value)
+  let adminNewValue = document.getElementById("adminValueInput").checked
+  //Write to DB
+  //Write to session storage
+
+  if (adminNewAge !== null && adminNewAge !== "" && Number.isInteger(Number(adminNewAge)) && adminNewAge > 1 && adminNewAge < 99) {
+    sessionStorage.setItem('userAge', adminNewAge);
+    firebase.database().ref('/userInfo/' + userIDArray[selectedValue] + '/age').set(adminNewAge);
+  }
+
+  if (adminNewName !== null && adminNewName !== "" && !adminNewName.includes('<') && !adminNewName.includes('>') && !adminNewName.includes('$') && adminNewName.length < 20) {
+    sessionStorage.setItem('userDisplayName', adminNewName);
+    firebase.database().ref('/userInfo/' + userIDArray[selectedValue] + '/gameName').set(adminNewName);
+  }
+
+  if (adminNewValue !== null && adminNewValue !== "" ) {
+    sessionStorage.setItem('userAdmin', adminNewValue);
+    firebase.database().ref('/userInfo/' + userIDArray[selectedValue] + '/admin').set(adminNewValue);
+  }
+
+  if (adminNewGeoDash !== null && adminNewGeoDash !== "" && Number.isInteger(Number(adminNewGeoDash)) && adminNewGeoDash > 1) {
+    firebase.database().ref('/GeoDash/' + userIDArray[selectedValue]).set(null);
+    firebase.database().ref('/GeoDash/' + userIDArray[selectedValue] + '/' + userInfoArray[selectedValue].gameName).set(adminNewGeoDash);
+
+  }
+
+  if (adminNewJetFighter !== null && adminNewJetFighter !== "" && Number.isInteger(Number(adminNewJetFighter)) && adminNewJetFighter > 1) {
+    firebase.database().ref('/JetFighter/' + userIDArray[selectedValue]).set(null);
+    firebase.database().ref('/JetFighter/' + userIDArray[selectedValue] + '/' + userInfoArray[selectedValue].gameName).set(adminNewJetFighter);
+  }
+
+  fb_adminRead();
+}

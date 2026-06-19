@@ -19,8 +19,7 @@ if (window.location.pathname.endsWith("/JetFighter.html")) {
   fb_readHighScores("GeoDash");
 } else if (window.location.pathname.endsWith("/admin.html")) {
   fb_adminRead();
-} else if (window.location.pathname === "/" || window.location.pathname.endsWith("/index.html")) {
-  console.log('run')
+} else if (window.location.pathname.endsWith("/") || window.location.pathname.endsWith("/index.html")) {
   fb_displayProfile();
 }
 
@@ -411,7 +410,6 @@ function fb_displayProfile() {
   if (profile && sessionStorage.getItem('userAdmin') == true) {
     document.getElementById("adminButton").style.display = "block"
   } else {
-    console.log('hide')
     document.getElementById("adminButton").style.display = "none"
   }
 

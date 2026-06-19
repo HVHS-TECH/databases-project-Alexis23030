@@ -11,7 +11,7 @@ let userAge;
 let userAdmin;
 let popUp;
 
-// Check if user is logged in, and display high scores if on the game pages
+// Check if user is logged in, display high scores if on the game pages, and display profile info on home page
 fb_isLoggedIn();
 if (window.location.pathname.endsWith("/JetFighter.html")) {
   fb_readHighScores("JetFighter");
@@ -19,6 +19,8 @@ if (window.location.pathname.endsWith("/JetFighter.html")) {
   fb_readHighScores("GeoDash");
 } else if (window.location.pathname.endsWith("/admin.html")) {
   fb_adminRead();
+} else if (window.location.pathname === "/" || window.location.pathname.endsWith("/index.html")) {
+  fb_displayProfile();
 }
 
 /*******************************************************/
@@ -33,19 +35,12 @@ function fb_isLoggedIn() {
     || sessionStorage.getItem('userEmail') == 'null' || sessionStorage.getItem('userDisplayName') == 'null' || sessionStorage.getItem('userPhotoURL') == 'null'
     || sessionStorage.getItem('userGameName') == 'null' || sessionStorage.getItem('userAdmin') == 'null') {
     //If any user info is not found, then open the loginPopup
+    document.getElementById("adminButton").style.display = "none"
     popUp = document.getElementById("loginPopUp");
     if (popUp) {
       popUp.style.display = "block"
     }
   } else {
-    //If user info is found, then display the profile pic, and profile info dropdown
-    profile = document.getElementById("profilePic");
-    if (profile) {
-      profile.innerHTML = `<img src="${sessionStorage.getItem('userPhotoURL')}" alt="User profile picture" 
-      width="50px" height="50px" style="border-radius: 50%"> <div class="profileInfo"><b>Name: </b><br>
-      ${sessionStorage.getItem('userDisplayName')} ~ ${sessionStorage.getItem('userGameName')}<br><b>Email: 
-      <br></b>${sessionStorage.getItem('userEmail')}<br><b>Age: </b><br>${sessionStorage.getItem('userAge')}</div>`
-    }
   }
 }
 
@@ -58,10 +53,12 @@ function fb_isLoggedIn() {
 /*******************************************************/
 async function fb_authenticate() {
   let user;
+
   firebase.auth().onAuthStateChanged(async (user) => {
+    user = firebase.auth().currentUser;
+
     if (user) {
       //Already logged in
-      user = firebase.auth().currentUser;
       if (user !== null) {
         //UID (from Google)
         uid = user.uid;
@@ -87,18 +84,10 @@ async function fb_authenticate() {
         //Save the admin value to sessionStorage
         sessionStorage.setItem('userAdmin', userAdmin);
 
-        profile = document.getElementById("profilePic");
-        if (profile && userAdmin == true) {
-          console.log("Admin mode available")
-          document.getElementById("adminButton").style.display = "block"
-        } else {
-          document.getElementById("adminButton").style.display = "none"
-        }
-
+        await fb_popUpChecker(); // Gets non-google info
+        await fb_isLoggedIn();   // Runs to check everything is entered
+        await fb_displayProfile(); // Displays profile info
         document.getElementById("loginPopUp").style.display = "none" // Hides loginPopUp
-        console.log("gone")
-        fb_popUpChecker(); // Gets non-google info
-        fb_isLoggedIn();   // Runs to check everything is entered, and display profile pic
         console.log("User Logged In")
       }
     } else {
@@ -196,6 +185,7 @@ async function fb_popUpChecker() {
   //Checks if game name is already in DB, and writes to sessionStorage
   userGameName = (await firebase.database().ref('/userInfo/' + uid + '/gameName').once('value')).val()
   sessionStorage.setItem('userGameName', userGameName);
+  console.log(sessionStorage.getItem('userGameName'))
   //Checks if user age is already in DB, and write to sessionStorage
   userAge = (await firebase.database().ref('/userInfo/' + uid + '/age').once('value')).val()
   sessionStorage.setItem('userAge', userAge);
@@ -204,7 +194,7 @@ async function fb_popUpChecker() {
     document.getElementById("namePopUp").style.display = "block";
   } else if (userAge == null) {
     //If userAge doesn't exist. then open age popUp
-    document.getElementById("agePopUp").style.display = "block"
+    document.getElementById("agePopUp").style.display = "block";
   }
 }
 
@@ -252,33 +242,39 @@ async function fb_readHighScores(_game) {
 
 /*******************************************************/
 // fb_adminRead()
-// NEEDS COMMENTS
+// Reads Info from DB, displays any given users info
+// Called if on Admin Page, in fb_adminWrite, and from Cancel Button
 /*******************************************************/
 async function fb_adminRead() {
   console.log("fb_adminRead")
+  // Hides write buttons for user info
   document.getElementById('saveButton').style.display = "none";
   document.getElementById('cancelButton').style.display = "none";
   document.getElementById('editButton').style.display = "block";
   document.getElementById('userDropdown').disabled = false;
 
+  //Gets user info from DB, user scores from DB
   let userInfo = (await firebase.database().ref('/userInfo').once('value')).val()
   let GeoDashScore = (await firebase.database().ref('/GeoDash').once('value')).val()
   let JetFighterScore = (await firebase.database().ref('/JetFighter').once('value')).val()
+  //Converts them to arrays
   let userInfoArray = Object.values(userInfo);
   let GeoDashScoreArray = Object.values(GeoDashScore);
   let JetFighterScoreArray = Object.values(JetFighterScore);
 
-  console.log(userInfoArray)
-  console.log(GeoDashScoreArray)
-  console.log(JetFighterScoreArray)
+  //Creates dropdown list of users in Db to view
   document.getElementById("userDropdown").innerHTML = ``
   for (i = 0; i < userInfoArray.length; i++) {
     document.getElementById("userDropdown").innerHTML += "<option value='" + i + "'>" + userInfoArray[i].displayName + " ~ " + userInfoArray[i].gameName + "</option>";
   }
 
+  //Event listener for a change in the dropdown
   document.getElementById('userDropdown').addEventListener('change', (_value) => {
+    //Shows edit button
     document.getElementById('editButton').style.display = "block";
+    // Input from dropdown
     let selectedValue = _value.target.value;
+    //Displays all user info
     let adminContent = document.getElementById('adminContent')
     adminContent.innerHTML = `
     <b>User Info:</b><br><br>
@@ -293,25 +289,30 @@ async function fb_adminRead() {
     <b>GeoDash Score: </b>${(GeoDashScoreArray.find(item => userInfoArray[selectedValue].gameName in item) || {})[userInfoArray[selectedValue].gameName]}<br>
     <b>JetFighter Score: </b>${(JetFighterScoreArray.find(item => userInfoArray[selectedValue].gameName in item) || {})[userInfoArray[selectedValue].gameName]}`
   });
+  //Runs the script inside of the Event Listener when the function is first run
   document.getElementById('userDropdown').dispatchEvent(new Event('change'));
 }
 
 
 /*******************************************************/
 // fb_adminEdit()
-// NEEDS COMMENTS
+// Provides the option to edit fields in the Admin View
+// Called from Edit Button
 /*******************************************************/
 async function fb_adminEdit() {
   console.log("fb_adminEdit()")
+  //Shows save and cancel buttons, hides edit button, disables dropdown
   document.getElementById('saveButton').style.display = "block";
   document.getElementById('cancelButton').style.display = "block";
   document.getElementById('editButton').style.display = "none";
+  document.getElementById('userDropdown').disabled = true
 
-
+  //Gets user info from DB, converts to Array
   let userInfo = (await firebase.database().ref('/userInfo').once('value')).val()
   let userInfoArray = Object.values(userInfo);
+  // Input from dropdown
   let selectedValue = document.getElementById('userDropdown').value;
-  document.getElementById('userDropdown').disabled = true
+  // Displays non editable info, and input boxes for editable info
   let adminContent = document.getElementById('adminContent')
   adminContent.innerHTML = `
     <b>User Info:</b><br><br>
@@ -330,14 +331,12 @@ async function fb_adminEdit() {
     <input class="adminInput" type="number" id="adminGeoDashInput" name="adminGeoDashInput"><br>
     <b>JetFighter Score: </b>    
     <input class="adminInput" type="number" id="adminJetFighterInput" name="adminJetFighterInput">`
-
 }
 
 
 /*******************************************************/
 // fb_adminWrite()
 // NEEDS COMMENTS
-// Needs Validation
 /*******************************************************/
 async function fb_adminWrite() {
   console.log("fb_adminWrite()");
@@ -368,7 +367,7 @@ async function fb_adminWrite() {
     firebase.database().ref('/userInfo/' + userIDArray[selectedValue] + '/gameName').set(adminNewName);
   }
 
-  if (adminNewValue !== null && adminNewValue !== "" ) {
+  if (adminNewValue !== null && adminNewValue !== "") {
     sessionStorage.setItem('userAdmin', adminNewValue);
     firebase.database().ref('/userInfo/' + userIDArray[selectedValue] + '/admin').set(adminNewValue);
   }
@@ -385,4 +384,37 @@ async function fb_adminWrite() {
   }
 
   fb_adminRead();
+}
+
+/*******************************************************/
+// fb_displayProfile()
+// NEEDS COMMENTS
+/*******************************************************/
+function fb_displayProfile() {
+  profile = document.getElementById("profilePic");
+  if (profile) {
+    profile.innerHTML = `<img src="${sessionStorage.getItem('userPhotoURL')}" alt="User profile picture" 
+      width="50px" height="50px" style="border-radius: 50%"> <div class="profileInfo"><b>Name: </b><br>
+      ${sessionStorage.getItem('userDisplayName')} ~ ${sessionStorage.getItem('userGameName')}<br><b>Email: 
+      <br></b>${sessionStorage.getItem('userEmail')}<br><b>Age: </b><br>${sessionStorage.getItem('userAge')}</div>`
+  }
+
+  let greeting = document.getElementById("greeting");
+  if (greeting && sessionStorage.getItem('userGameName') !== null && sessionStorage.getItem('userGameName') !== 'null') {
+    let currentHour = new Date().getHours();
+    if (currentHour < 12) {
+      greeting.innerHTML = `Good Morning ${sessionStorage.getItem('userGameName')}!`
+    } else if (currentHour >= 12 && currentHour < 17) {
+      greeting.innerHTML = `Good Afternoon ${sessionStorage.getItem('userGameName')}!`
+    } else if (currentHour >= 17) {
+      greeting.innerHTML = `Good Evening ${sessionStorage.getItem('userGameName')}!`
+    }
+  }
+
+  if (profile && sessionStorage.getItem('userAdmin') == true) {
+    console.log("Admin mode available")
+    document.getElementById("adminButton").style.display = "block"
+  } else {
+    document.getElementById("adminButton").style.display = "none"
+  }
 }

@@ -53,7 +53,7 @@ function fb_isLoggedIn() {
 /*******************************************************/
 async function fb_authenticate() {
   let user;
-
+  document.getElementById('loader').style.display = "block";
   firebase.auth().onAuthStateChanged(async (user) => {
     user = firebase.auth().currentUser;
 
@@ -87,7 +87,9 @@ async function fb_authenticate() {
         await fb_popUpChecker(); // Gets non-google info
         await fb_isLoggedIn();   // Runs to check everything is entered
         await fb_displayProfile(); // Displays profile info
+        document.getElementById('loader').style.display = "none"; // Hides spinner
         document.getElementById("loginPopUp").style.display = "none" // Hides loginPopUp
+
         console.log("User Logged In")
       }
     } else {

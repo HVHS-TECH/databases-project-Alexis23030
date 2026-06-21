@@ -409,7 +409,7 @@ function fb_displayProfile() {
 
   //If profile element exists, and user is admin then display admin button
   //Otherwise hide admin button
-  if (profile && sessionStorage.getItem('userAdmin') == true) {
+  if (sessionStorage.getItem('userAdmin') == true || sessionStorage.getItem('userAdmin') == 'true') {
     document.getElementById("adminButton").style.display = "block"
   } else {
     document.getElementById("adminButton").style.display = "none"

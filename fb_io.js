@@ -392,7 +392,6 @@ async function fb_adminWrite() {
 // fb_displayProfile()
 // Displays profile pic, profile info, greeting, and aadmin butoon
 // Called if on home page, and in fb_authenticate
-// NEEDS COMMENTS
 /*******************************************************/
 function fb_displayProfile() {
   //Gets profile pic html element
